@@ -1,0 +1,3 @@
+#!/bin/csh
+set PUERTO=m68000
+exec /usr/local/bsvc/bin/pr_cliente -p $PUERTO

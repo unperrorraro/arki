@@ -1,0 +1,14 @@
+#!/bin/sh
+# TCL_LIBRARY=......
+# TK_LIBRARY=......
+# export TCL_LIBRARY TK_LIBRARY
+ARGS=$*
+export ARGS
+TRAZA_BSVC=1
+export TRAZA_BSVC
+PATH=/usr/local/bsvc/bin:$PATH
+pkill xtermpipe
+pkill wish
+pkill sim68000
+sleep 1
+exec wish -f /usr/local/bsvc-2.3/bin/UI/bsvc.tk
