@@ -34,25 +34,22 @@
  MOVE.B #$00,IMR
  MOVEM.L D0-D2/A2,-(A7)
  MOVEM.L D6,-(A7)
-
  ADD.B #$01,D3
-
  MOVE.B ISR,D6
  AND.B IMR_2,D6
- 
+
+
+
  BTST #0,D6           
  BNE.L IN_TA  
-
- BTST #1,D6           
+RTI_1: BTST #1,D6           
  BNE.L IN_RA         
- 
- BTST #4,D6           
+RTI_4: BTST #4,D6           
  BNE.L IN_TB 
-
- BTST #5,D6  
+RTI_5: BTST #5,D6  
  BNE.L  IN_RB  
-
  BRA.L FIN_RTI
+
 
 IN_RA:
 
@@ -61,7 +58,7 @@ IN_RA:
  JSR ESCCAR
  ADD.B #$01,D4
 
- BRA.L FIN_RTI
+ BRA.L RTI_4
 
 
 IN_RB:
@@ -87,7 +84,7 @@ IN_TA:
  ADD.B #$01,D4
  MOVE.B D0,BUFF_A
 
- BRA.L FIN_RTI
+ BRA.L RTI_1
 
 
 IN_TB:
@@ -97,7 +94,7 @@ IN_TB:
  CMP.L #$FFFFFFFF,D0
  BNE HIT_TB
  AND.B #$EF,IMR_2
- BRA.L FIN_RTI
+ BRA.L RTI_5
 
 
 
@@ -159,8 +156,8 @@ INIT:
 
 
  MOVE.B #$40,IVR
- MOVE.B #$22,IMR
- MOVE.B #$22,IMR_2
+ MOVE.B #$33,IMR
+ MOVE.B #$33,IMR_2
  MOVE.B #$00,ACR
 
  MOVE.L #RTI,$100
@@ -172,33 +169,17 @@ INIT:
  RTS
 
 
-
  ORG $4000
 
  JSR INIT
  MOVE.W #$2000,SR
+ EOR.L D0,D0
+ EOR.L D1,D1
+ ADD.B #$34,D1
+ EOR.L D0,D0
+ BUC:ADD.B #$0,D0
+ ADD.W #$10,D2
+ BRA BUC
 
- * Meter el string en el buffer de transmision A
- LEA CADENA,A0           * A0 apunta al inicio del string
- MOVE.W #5,D2            * contador de caracteres (longitud del string)
-
-LOOP:
- MOVE.L #$02,D0          * buffer TX linea A
- MOVE.B (A0)+,D1         * coger siguiente caracter
- JSR ESCCAR
- CMP.L #$FFFFFFFF,D0     * buffer lleno?
- BEQ BUCLE               * si lleno, salir igualmente
- SUBQ.W #1,D2
- BNE LOOP
-
- * Activar interrupcion de TX linea A en IMR_2
- OR.B #$01,IMR_2
- MOVE.B IMR_2,IMR
-
-BUCLE: 
- NOP
- BRA BUCLE
-
-CADENA: DC.B 'H','o','l','a','!'
 INCLUDE bib_aux.s
 
