@@ -30,301 +30,472 @@
 00000500  00                                30   IMR_2: DC.B 0
 00000501                                    31  
 00001000                                    32   ORG $1000
-00001000                                    33   RTI:
-00001000  13FC 0000 00EFFC0B                34   MOVE.B #$00,IMR
-00001008  48E7 E020                         35   MOVEM.L D0-D2/A2,-(A7)
-0000100C  48E7 0200                         36   MOVEM.L D6,-(A7)
-00001010  5203                              37   ADD.B #$01,D3
-00001012  1C39 00EFFC0B                     38   MOVE.B ISR,D6
-00001018  CC38 0500                         39   AND.B IMR_2,D6
-0000101C                                    40  
-0000101C                                    41  
-0000101C                                    42  
-0000101C  0806 0000                         43   BTST #0,D6           
-00001020  6600 004A                         44   BNE.L IN_TA  
-00001024  0806 0001                         45  RTI_1: BTST #1,D6           
-00001028  6600 0016                         46   BNE.L IN_RA         
-0000102C  0806 0004                         47  RTI_4: BTST #4,D6           
-00001030  6600 0064                         48   BNE.L IN_TB 
-00001034  0806 0005                         49  RTI_5: BTST #5,D6  
-00001038  6600 001C                         50   BNE.L  IN_RB  
-0000103C  6000 0082                         51   BRA.L FIN_RTI
-00001040                                    52  
-00001040                                    53  
-00001040                                    54  IN_RA:
-00001040                                    55  
-00001040  103C 0000                         56   MOVE.B #$00,D0
-00001044  1239 00EFFC07                     57   MOVE.B BUFF_A,D1
-0000104A  4EB9 00005F86                     58   JSR ESCCAR
-00001050  5204                              59   ADD.B #$01,D4
-00001052                                    60  
-00001052  6000 FFD8                         61   BRA.L RTI_4
-00001056                                    62  
-00001056                                    63  
-00001056                                    64  IN_RB:
-00001056                                    65  
-00001056  103C 0001                         66   MOVE.B #$01,D0
-0000105A  1239 00EFFC17                     67   MOVE.B BUFF_B,D1
-00001060  4EB9 00005F86                     68   JSR ESCCAR
-00001066  5205                              69   ADD.B #$01,D5
-00001068                                    70  
-00001068  6000 0056                         71   BRA.L FIN_RTI
-0000106C                                    72  
-0000106C                                    73  IN_TA:
-0000106C                                    74  
-0000106C  103C 0002                         75   MOVE.B #$02,D0
-00001070  4EB9 00006008                     76   JSR LEECAR
-00001076  B0BC FFFFFFFF                     77   CMP.L #$FFFFFFFF,D0
-0000107C  6600 000C                         78   BNE HIT_IN_TA
-00001080  0238 00FE 0500                    79   AND.B #$FE,IMR_2
-00001086  6000 0038                         80   BRA.L FIN_RTI
-0000108A                                    81  
-0000108A                                    82  
-0000108A                                    83   HIT_IN_TA:
-0000108A  5204                              84   ADD.B #$01,D4
-0000108C  13C0 00EFFC07                     85   MOVE.B D0,BUFF_A
-00001092                                    86  
-00001092  6000 FF90                         87   BRA.L RTI_1
-00001096                                    88  
-00001096                                    89  
-00001096                                    90  IN_TB:
-00001096                                    91  
-00001096  303C 0003                         92   MOVE #$03,D0
-0000109A  4EB9 00006008                     93   JSR LEECAR
-000010A0  B0BC FFFFFFFF                     94   CMP.L #$FFFFFFFF,D0
-000010A6  6600 000C                         95   BNE HIT_TB
-000010AA  0238 00EF 0500                    96   AND.B #$EF,IMR_2
-000010B0  6000 FF82                         97   BRA.L RTI_5
-000010B4                                    98  
-000010B4                                    99  
-000010B4                                   100  
-000010B4                                   101  
-000010B4                                   102  
-000010B4                                   103  
-000010B4                                   104  HIT_TB:
-000010B4  5205                             105   ADD.B #$01,D5
-000010B6                                   106  
-000010B6                                   107  
-000010B6                                   108  
-000010B6  13C0 00EFFC17                    109   MOVE.B D0,BUFF_B
-000010BC                                   110  
-000010BC  6000 0002                        111   BRA.L FIN_RTI
-000010C0                                   112  
-000010C0                                   113  
-000010C0                                   114  
-000010C0                                   115   
-000010C0                                   116  
-000010C0                                   117  
-000010C0                                   118  
-000010C0                                   119  
-000010C0                                   120  
-000010C0                                   121  
-000010C0                                   122  
-000010C0  4CDF 0040                        123   FIN_RTI: MOVEM.L (A7)+,D6
-000010C4  4CDF 0407                        124   MOVEM.L (A7)+,D0-D2/A2
-000010C8  13F8 0500 00EFFC0B               125   MOVE.B IMR_2,IMR
-000010D0  4E73                             126   RTE
-000010D2                                   127  
-000010D2                                   128    
-000010D2                                   129  
-000010D2                                   130  
-00003000                                   131   ORG $3000
-00003000                                   132  
-00003000                                   133  INIT: 
-00003000                                   134  
-00003000                                   135   * Reg MR1X 0(0)0000(11) = $03 (RxRGY & 8bits)
-00003000                                   136   * Reg MR2X (00)0000(0) = $0 (Modo normal)
-00003000                                   137   * Reg ACR (0)000000 = $0 (Conjunto 1 de velocidades) 
-00003000                                   138   * Reg CSRX (1100)(1100) = $CC ( velocidades de transmision y recepcion)
-00003000                                   139   * Reg CRX (0001)(01)(01) = $15 (Habilitar transmision y recepcion)
-00003000                                   140   * Reg IVR  $40 (Dado por el enunciado)
-00003000                                   141   * Reg IMR  00(1)(0)00(1)(0) = $22 (habilitar E/S)
-00003000                                   142  
-00003000  6100 3084                        143   BSR.L INI_BUFS
-00003004                                   144  
-00003004  13FC 0010 00EFFC05               145   MOVE.B #$10,CRA
-0000300C  13FC 0010 00EFFC15               146   MOVE.B #$10,CRB *Activamos MR1 pero no ponemos las interrupciones aun
-00003014                                   147  
-00003014  13FC 0003 00EFFC01               148   MOVE.B #$03,MR1A
-0000301C  13FC 0003 00EFFC11               149   MOVE.B #$03,MR1B
-00003024  13FC 0000 00EFFC01               150   MOVE.B #$00,MR2A
-0000302C  13FC 0000 00EFFC11               151   MOVE.B #$00,MR2B
-00003034                                   152  
-00003034                                   153  
-00003034  13FC 00CC 00EFFC03               154   MOVE.B #$CC,CSRA
-0000303C  13FC 00CC 00EFFC13               155   MOVE.B #$CC,CSRB
-00003044                                   156  
-00003044                                   157  
-00003044  13FC 0040 00EFFC19               158   MOVE.B #$40,IVR
-0000304C  13FC 0033 00EFFC0B               159   MOVE.B #$33,IMR
-00003054  11FC 0033 0500                   160   MOVE.B #$33,IMR_2
-0000305A  13FC 0000 00EFFC09               161   MOVE.B #$00,ACR
-00003062                                   162  
-00003062  21FC 00001000 0100               163   MOVE.L #RTI,$100
-0000306A                                   164  
-0000306A  13FC 0015 00EFFC05               165   MOVE.B #$15,CRA
-00003072  13FC 0015 00EFFC15               166   MOVE.B #$15,CRB *Activamos MR1  y las interrupciones
-0000307A                                   167  
-0000307A                                   168  
-0000307A  4E75                             169   RTS
-0000307C                                   170  
-0000307C                                   171  
-00004000                                   172   ORG $4000
-00004000                                   173  
-00004000  4EB8 3000                        174   JSR INIT
-00004004  46FC 2000                        175   MOVE.W #$2000,SR
-00004008  B180                             176   EOR.L D0,D0
-0000400A  B381                             177   EOR.L D1,D1
-0000400C  0601 0034                        178   ADD.B #$34,D1
-00004010  B180                             179   EOR.L D0,D0
-00004012  0600 0000                        180   BUC:ADD.B #$0,D0
-00004016  0642 0010                        181   ADD.W #$10,D2
-0000401A  60F6                             182   BRA BUC
-0000401C                                   183  
-0000401C                                   184  
-0000401C                                   185  * V1.0 Feb. 2022
-0000401C                                   186  * V1.1 24/02/2022. Alineamiento esccar
-0000401C                                   187  * V1.2 14/03/2022. Devolución valor correcto de D0 en ESCCAR
-0000401C                                   188  * V1.3 03/05/2022. Se ponen a 0 los 30 bits más sign de D0 en LEECAR y ESCCAR
-0000401C                                   189  * V1.4 09/11/2023. Renombrado de etiquetas. Comienzan por .
-0000401C                                   190  
-0000401C                                   191  
-0000401C                                   192  
-0000401C  =00000000                        193  .SCAN_A	EQU	0
-0000401C  =00000001                        194  .SCAN_B	EQU	1
-0000401C  =00000002                        195  .PRNT_A	EQU	2
-0000401C  =00000003                        196  .PRNT_B	EQU	3
-0000401C                                   197  
-0000401C  =000007D1                        198  .TAMBUF	EQU	2001
-0000401C                                   199  
-0000401C                                   200  * Buffer de Scan A
-0000401C  00004024                         201  .BSCAN_A		DC.L	.BSC_A	* Puntero de extracción 
-00004020  00004024                         202  		DC.L	.BSC_A	* Puntero de inserción
-00004024                                   203  .BSC_A		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
-000047F5                                   204  
-000047F5                                   205  * Buffer de Scan B
-000047F6  000047FE                         206  .BSCAN_B		DC.L	.BSC_B	* Puntero de extracción 
-000047FA  000047FE                         207  		DC.L	.BSC_B	* Puntero de inserción
-000047FE                                   208  .BSC_B		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
-00004FCF                                   209  
-00004FCF                                   210  * Buffer de Print A
-00004FD0  00004FD8                         211  .BPRNT_A		DC.L	.BPR_A	* Puntero de extracción 
-00004FD4  00004FD8                         212  		DC.L	.BPR_A	* Puntero de inserción
-00004FD8                                   213  .BPR_A		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
-000057A9                                   214  
-000057A9                                   215  * Buffer de Print B
-000057AA  000057B2                         216  .BPRNT_B		DC.L	.BPR_B	* Puntero de extracción 
-000057AE  000057B2                         217  		DC.L	.BPR_B	* Puntero de inserción
-000057B2                                   218  .BPR_B		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
-00005F83                                   219  
-00005F84  0001                             220  		DC.W 1
-00005F86                                   221  
-00005F86                                   222  
-00005F86                                   223  *************************** ESCCAR *********************************************************
-00005F86                                   224  
-00005F86                                   225  ESCCAR:
-00005F86  48E7 20F8                        226          MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
-00005F8A                                   227  
-00005F8A  C0BC 00000003                    228  	AND.L   #3,D0
-00005F90  B0BC 00000000                    229  	CMP.L	#.SCAN_A,D0
-00005F96  6600 000C                        230  	BNE	.ESCB
-00005F9A  207C 0000401C                    231  	MOVE.L	#.BSCAN_A,A0
-00005FA0  6000 0030                        232  	BRA	.CONTESC
-00005FA4  B0BC 00000001                    233  .ESCB:   CMP.L   #.SCAN_B,D0
-00005FAA  6600 000C                        234          BNE     .EPRA
-00005FAE  207C 000047F6                    235          MOVE.L  #.BSCAN_B,A0
-00005FB4  6000 001C                        236          BRA     .CONTESC
-00005FB8  B0BC 00000002                    237  .EPRA:   CMP.L   #.PRNT_A,D0
-00005FBE  6600 000C                        238          BNE     .EPRB
-00005FC2  207C 00004FD0                    239          MOVE.L  #.BPRNT_A,A0
-00005FC8  6000 0008                        240          BRA     .CONTESC
-00005FCC  207C 000057AA                    241  .EPRB: 	MOVE.L  #.BPRNT_B,A0
-00005FD2                                   242  
-00005FD2  B180                             243  .CONTESC: EOR.L D0,D0		* A0 contiene la dirección del puntero de extracción
-00005FD4  2250                             244  	MOVE.L	(A0),A1		* A1 contiene el puntero de extracción
-00005FD6  2468 0004                        245  	MOVE.L	4(A0),A2	* A2 contiene el puntero de inserción 
-00005FDA  2648                             246  	MOVE.L	A0,A3
-00005FDC  508B                             247  	ADD.L	#8,A3		* A3 contiene el comienzo del buffer 
-00005FDE  240B                             248  	MOVE.L	A3,D2
-00005FE0  0682 000007D1                    249  	ADD.L	#.TAMBUF,D2
-00005FE6  2842                             250  	MOVE.L	D2,A4		* A4 contiene el final del buffer (1 más allá)
-00005FE8                                   251  
-00005FE8  14C1                             252  	MOVE.B	D1,(A2)+		* Inserta el caracter
-00005FEA  B9CA                             253  	CMP.L	A2,A4		* Si son iguales  ha llegado al final del buffer
-00005FEC  6600 0004                        254  	BNE	.ACPUNE
-00005FF0  244B                             255  	MOVE.L	A3,A2		* Se pone el puntero de inserción al comienzo del buffer
-00005FF2  B5C9                             256  .ACPUNE: CMP.L	A1,A2		* Si son iguales se ha llenado el buffer
-00005FF4  6700 000A                        257  	BEQ	.LLENO
-00005FF8  214A 0004                        258  	MOVE.L	A2,4(A0)	* Actualiza el puntero de inserción
-00005FFC  6000 0004                        259  	BRA	.FINEB
-00006000  70FF                             260  .LLENO:	MOVE.L	#-1,D0		* Se devuelve un -1 en D0 
-00006002  4CDF 1F04                        261  .FINEB:	MOVEM.L       (A7)+,A0-A4/D2 *Restauramos los registros
-00006006  4E75                             262  	RTS
-00006008                                   263  
-00006008                                   264  *************************** FIN ESCCAR *****************************************************
-00006008                                   265  
-00006008                                   266  *************************** LEECAR *********************************************************
-00006008                                   267  
-00006008                                   268  LEECAR:
-00006008  48E7 20F8                        269          MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
-0000600C                                   270  
-0000600C  C0BC 00000003                    271  	AND.L   #3,D0
-00006012  B0BC 00000000                    272  	CMP.L	#.SCAN_A,D0
-00006018  6600 000C                        273  	BNE	.LSCB
-0000601C  207C 0000401C                    274  	MOVE.L	#.BSCAN_A,A0
-00006022  6000 0030                        275  	BRA	.CONTLEE
-00006026  B0BC 00000001                    276  .LSCB:   CMP.L   #.SCAN_B,D0
-0000602C  6600 000C                        277          BNE     .LPRA
-00006030  207C 000047F6                    278          MOVE.L  #.BSCAN_B,A0
-00006036  6000 001C                        279          BRA     .CONTLEE
-0000603A  B0BC 00000002                    280  .LPRA:   CMP.L   #.PRNT_A,D0
-00006040  6600 000C                        281          BNE     .LPRB
-00006044  207C 00004FD0                    282          MOVE.L  #.BPRNT_A,A0
-0000604A  6000 0008                        283          BRA     .CONTLEE
-0000604E  207C 000057AA                    284  .LPRB: 	MOVE.L  #.BPRNT_B,A0
-00006054                                   285  
-00006054                                   286  .CONTLEE:				* A0 contiene la dirección del puntero de extracción
-00006054  2250                             287  	MOVE.L	(A0),A1		* A1 contiene el puntero de extracción
-00006056  2468 0004                        288  	MOVE.L	4(A0),A2	* A2 contiene el puntero de inserción 
-0000605A  2648                             289  	MOVE.L	A0,A3
-0000605C  508B                             290  	ADD.L	#8,A3		* A3 contiene el comienzo del buffer 
-0000605E  240B                             291          MOVE.L  A3,D2
-00006060  0682 000007D1                    292          ADD.L   #.TAMBUF,D2
-00006066  2842                             293          MOVE.L  D2,A4           * A4 contiene el final del buffer (1 más allá)
-00006068                                   294  
-00006068  B5C9                             295  	CMP.L	A1,A2		* Si son iguales, el buffer está vacío
-0000606A  6600 0008                        296  	BNE	.NOVAC
-0000606E  70FF                             297  	MOVE.L	#-1,D0
-00006070  6000 000E                        298  	BRA	.SALLB
-00006074                                   299  
-00006074  1019                             300  .NOVAC:	MOVE.B	(A1)+,D0		* Extrae el caracter
-00006076  B9C9                             301  	CMP.L	A1,A4		* Si son iguales  ha llegado al final del buffer
-00006078  6600 0004                        302  	BNE	.ACPUNL
-0000607C  224B                             303  	MOVE.L	A3,A1		* Se pone el puntero de extracción al comienzo del buffer
-0000607E  2089                             304  .ACPUNL:	MOVE.L	A1,(A0)		* Actualiza el puntero de extracción
-00006080                                   305  
-00006080  4CDF 1F04                        306  .SALLB:	MOVEM.L (A7)+,A0-A4/D2 *Restauramos los registros
-00006084  4E75                             307  	RTS
-00006086                                   308  
-00006086                                   309  *************************** FIN LEECAR *****************************************************
-00006086                                   310  
-00006086                                   311  *************************** INI_BUFS *********************************************************
-00006086                                   312  
-00006086                                   313  INI_BUFS:
-00006086  21FC 00004024 401C               314  	MOVE.L	#.BSC_A,.BSCAN_A		* Inicia el puntero de extracción
-0000608E  21FC 00004024 4020               315  	MOVE.L	#.BSC_A,.BSCAN_A+4	* Inicia el puntero de inserción
-00006096  21FC 000047FE 47F6               316  	MOVE.L	#.BSC_B,.BSCAN_B		* Inicia el puntero de extracción
-0000609E  21FC 000047FE 47FA               317  	MOVE.L	#.BSC_B,.BSCAN_B+4	* Inicia el puntero de inserción
-000060A6  21FC 00004FD8 4FD0               318  	MOVE.L	#.BPR_A,.BPRNT_A		* Inicia el puntero de extracción
-000060AE  21FC 00004FD8 4FD4               319  	MOVE.L	#.BPR_A,.BPRNT_A+4	* Inicia el puntero de inserción
-000060B6  21FC 000057B2 57AA               320  	MOVE.L	#.BPR_B,.BPRNT_B		* Inicia el puntero de extracción
-000060BE  21FC 000057B2 57AE               321  	MOVE.L	#.BPR_B,.BPRNT_B+4	* Inicia el puntero de inserción
-000060C6                                   322  	
-000060C6  4E75                             323          RTS
-000060C8                                   324  
-000060C8                                   325  *************************** FIN INI_BUFS *****************************************************
-000060C8                                   326  
-000060C8                                   327  
+00001000                                    33  
+00001000                                    34  
+00001000                                    35  * SCAN - Lectura de dispositivo
+00001000                                    36  * ParÃ¡metros en pila (desde 8(A6) hacia arriba):
+00001000                                    37  *   4(A6)  = Buffer destino (direcciÃ³n, 4 bytes)
+00001000                                    38  *   8(A6) = Descriptor lÃ­nea (2 bytes): 0 = A, 1 = B
+00001000                                    39  *   10(A6) = TamaÃ±o mÃ¡ximo a leer (2 bytes)
+00001000                                    40  * Retorno: D0 = nÃºmero de caracteres leÃ­dos, o -1 si error
+00001000                                    41  
+00001000                                    42  
+00001000                                    43  SCAN:
+00001000  4E56 0000                         44          LINK    A6,#0              * Crear marco de pila
+00001004  48E7 7080                         45          MOVEM.L D1-D3/A0,-(A7)    * Salvar registros
+00001008                                    46  
+00001008                                    47          * Cargar parÃ¡metros
+00001008  B180                              48          EOR.L D0,D0
+0000100A                                    49          * 0(A6) es la dir retorno
+0000100A  206E 0004                         50          MOVE.L  4(A6),A0          * A0 = buffer destino
+0000100E  302E 0008                         51          MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+00001012  342E 000A                         52          MOVE.W  10(A6),D2          * D2 = tamaÃ±o mÃ¡ximo
+00001016                                    53  
+00001016                                    54          * Validar descriptor (solo 0 o 1 son vÃ¡lidos)
+00001016  B07C 0001                         55            CMP.W   #1,D0
+0000101A  6200 0038                         56          BHI     SCAN_ERROR
+0000101E                                    57          * Validar tamaÃ±o (si es 0, no hay nada que leer)
+0000101E  B47C 0000                         58          CMP.W   #0,D2
+00001022  6700 0024                         59          BEQ     SCAN_CERO
+00001026                                    60          * Inicializar contador de caracteres leÃ­dos
+00001026  4283                              61          CLR.L   D3
+00001028                                    62  
+00001028                                    63  SCAN_LOOP:
+00001028                                    64          * Â¿Ya leÃ­mos el mÃ¡ximo?
+00001028  B443                              65          CMP.W   D3,D2
+0000102A  6700 0022                         66          BEQ     SCAN_FIN
+0000102E  B180                              67          EOR.L D0,D0
+00001030  302E 0008                         68          MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+00001034                                    69  
+00001034  6100 4FD2                         70          BSR     LEECAR
+00001038                                    71          * Si LEECAR devuelve -1, buffer vacÃ­o â†’ terminar
+00001038  B0BC FFFFFFFF                     72          CMP.L   #$FFFFFFFF,D0
+0000103E  6700 000E                         73          BEQ     SCAN_FIN
+00001042                                    74  
+00001042                                    75          * Copiar carÃ¡cter al buffer destino y avanzar puntero
+00001042  10C0                              76          MOVE.B  D0,(A0)+
+00001044  5243                              77          ADDQ.W  #1,D3
+00001046  60E0                              78          BRA     SCAN_LOOP
+00001048                                    79  
+00001048                                    80  SCAN_CERO:
+00001048                                    81          * TamaÃ±o = 0: devolver 0 caracteres leÃ­dos
+00001048  4280                              82          CLR.L   D0
+0000104A  6000 000A                         83          BRA     SCAN_RET
+0000104E                                    84  
+0000104E                                    85  SCAN_FIN:
+0000104E                                    86          * Devolver nÃºmero de caracteres leÃ­dos
+0000104E  2003                              87          MOVE.L  D3,D0
+00001050  6000 0004                         88          BRA     SCAN_RET
+00001054                                    89  
+00001054                                    90  SCAN_ERROR:
+00001054                                    91          * ParÃ¡metro invÃ¡lido: devolver -1
+00001054  70FF                              92          MOVE.L  #$FFFFFFFF,D0
+00001056                                    93  
+00001056                                    94  SCAN_RET:
+00001056  4CDF 010E                         95          MOVEM.L (A7)+,D1-D3/A0    * Restaurar registros
+0000105A  4E5E                              96          UNLK    A6                  * Destruir marco de pila
+0000105C  4E75                              97          RTS
+0000105E                                    98  
+0000105E                                    99  
+0000105E                                   100  * Print - Escritura en dispositivo
+0000105E                                   101  * ParÃ¡metros en pila (desde 8(A6) hacia arriba):
+0000105E                                   102  *   4(A6)  = Buffer fuente (direcciÃ³n, 4 bytes)
+0000105E                                   103  *   8(A6) = Descriptor lÃ­nea (2 bytes): 0 = A, 1 = B
+0000105E                                   104  *   10(A6) = TamaÃ±o a escribir (2 bytes)
+0000105E                                   105  * Retorno: D0 = nÃºmero de caracteres aceptados, o -1 si error
+0000105E                                   106  
+0000105E                                   107  
+0000105E                                   108  PRINT:
+0000105E  4E56 0000                        109          LINK    A6,#0              * Crear marco de pila
+00001062  48E7 7CC0                        110          MOVEM.L D1-D5/A0-A1,-(A7) * Salvar registros
+00001066                                   111  
+00001066                                   112          * Cargar parÃ¡metros
+00001066  B180                             113          EOR.L D0,D0
+00001068  302E 0008                        114          MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+0000106C  342E 000A                        115          MOVE.W  10(A6),D2          * D2 = tamaÃ±o
+00001070  206E 0004                        116          MOVE.L  4(A6),A0          * A0 = buffer fuente
+00001074                                   117  
+00001074                                   118          * Validar descriptor (solo 0 o 1 son vÃ¡lidos)
+00001074  B07C 0001                        119          CMP.W   #1,D0
+00001078  6200 0068                        120          BHI     PRINT_ERROR
+0000107C                                   121  
+0000107C                                   122          * Validar tamaÃ±o (si es 0, no hay nada que escribir)
+0000107C  B47C 0000                        123          CMP.W   #0,D2
+00001080  6700 005A                        124          BEQ     PRINT_CERO
+00001084                                   125  
+00001084                                   126          * Inicializar contador
+00001084  4283                             127          CLR.L   D3
+00001086  2248                             128          MOVE.L  A0,A1              * A1 = puntero fuente (avanza)
+00001088                                   129  
+00001088                                   130  PRINT_LOOP:
+00001088                                   131          * Â¿Ya escribimos todo?
+00001088  B443                             132          CMP.W   D3,D2
+0000108A  6700 001E                        133          BEQ     PRINT_FIN
+0000108E                                   134  
+0000108E                                   135      
+0000108E                                   136          * Obtener carÃ¡cter del buffer fuente
+0000108E  1219                             137          MOVE.B  (A1)+,D1
+00001090                                   138  
+00001090                                   139          * Calcular descriptor para ESCCAR (transmisiÃ³n)
+00001090                                   140          * Descriptor original 0 â†’ 2 (PRNT_A)
+00001090                                   141          * Descriptor original 1 â†’ 3 (PRNT_B)
+00001090  B180                             142          EOR.L D0,D0
+00001092  302E 0008                        143          MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+00001096  5440                             144          ADDQ.W  #2,D0
+00001098                                   145  
+00001098                                   146          * Insertar carÃ¡cter en buffer interno
+00001098  6100 4EEC                        147          BSR     ESCCAR
+0000109C                                   148  
+0000109C                                   149         
+0000109C                                   150          * Si ESCCAR devuelve -1, buffer lleno â†’ terminar
+0000109C  B0BC FFFFFFFF                    151          CMP.L   #$FFFFFFFF,D0
+000010A2  6700 0006                        152          BEQ     PRINT_FIN
+000010A6                                   153  
+000010A6                                   154          * Incrementar contador
+000010A6  5243                             155          ADDQ.W  #1,D3
+000010A8  60DE                             156          BRA     PRINT_LOOP
+000010AA                                   157  
+000010AA                                   158  PRINT_FIN:
+000010AA                                   159          * Â¿Se insertÃ³ algÃºn carÃ¡cter?
+000010AA  4A83                             160          TST.L   D3
+000010AC  6700 0028                        161          BEQ     PRINT_RET_OK
+000010B0                                   162  
+000010B0                                   163    
+000010B0                                   164  
+000010B0                                   165          * Activar TxRDY segÃºn la lÃ­nea
+000010B0  B180                             166          EOR.L D0,D0
+000010B2  302E 0008                        167          MOVE.W  8(A6),D0
+000010B6  B07C 0000                        168          CMP.W   #0,D0
+000010BA  6700 000C                        169          BEQ     PRINT_ACT_A
+000010BE                                   170          * LÃ­nea B: activar bit 5 (TXR_B)
+000010BE  0038 0010 0500                   171          OR.B   #$10,IMR_2
+000010C4  6000 0008                        172          BRA     PRNT_ACT_K
+000010C8                                   173  PRINT_ACT_A:
+000010C8                                   174          * LÃ­nea A: activar bit 1 (TXR_A)
+000010C8                                   175          
+000010C8  0038 0001 0500                   176          OR.B   #$01,IMR_2
+000010CE                                   177  
+000010CE                                   178  PRNT_ACT_K:
+000010CE                                   179          * Actualizar IMR y su copia
+000010CE                                   180         
+000010CE  13F8 0500 00EFFC0B               181          MOVE.B IMR_2,IMR
+000010D6                                   182  
+000010D6                                   183  
+000010D6                                   184  PRINT_RET_OK:
+000010D6  2003                             185          MOVE.L  D3,D0              * Devolver caracteres aceptados
+000010D8  6000 000A                        186          BRA     PRINT_DEVUELVE
+000010DC                                   187  
+000010DC                                   188  PRINT_CERO:
+000010DC  4280                             189          CLR.L   D0                  * Devolver 0
+000010DE  6000 0004                        190          BRA     PRINT_DEVUELVE
+000010E2                                   191  
+000010E2                                   192  PRINT_ERROR:
+000010E2  70FF                             193          MOVE.L  #$FFFFFFFF,D0      * Devolver -1 (error)
+000010E4                                   194  
+000010E4                                   195  PRINT_DEVUELVE:
+000010E4  4CDF 033E                        196          MOVEM.L (A7)+,D1-D5/A0-A1
+000010E8  4E5E                             197          UNLK    A6
+000010EA  4E75                             198          RTS
+000010EC                                   199  
+000010EC                                   200  
+000010EC                                   201  
+000010EC                                   202  
+000010EC                                   203  
+000010EC                                   204   RTI:
+000010EC  13FC 0000 00EFFC0B               205   MOVE.B #$00,IMR
+000010F4  48E7 E020                        206   MOVEM.L D0-D2/A2,-(A7)
+000010F8  48E7 0200                        207   MOVEM.L D6,-(A7)
+000010FC  5203                             208   ADD.B #$01,D3
+000010FE  1C39 00EFFC0B                    209   MOVE.B ISR,D6
+00001104  CC38 0500                        210   AND.B IMR_2,D6
+00001108                                   211  
+00001108                                   212  
+00001108                                   213  
+00001108  0806 0000                        214   BTST #0,D6           
+0000110C  6600 004A                        215   BNE.L IN_TA  
+00001110  0806 0001                        216  RTI_1: BTST #1,D6           
+00001114  6600 0016                        217   BNE.L IN_RA         
+00001118  0806 0004                        218  RTI_4: BTST #4,D6           
+0000111C  6600 0064                        219   BNE.L IN_TB 
+00001120  0806 0005                        220  RTI_5: BTST #5,D6  
+00001124  6600 001C                        221   BNE.L  IN_RB  
+00001128  6000 0082                        222   BRA.L FIN_RTI
+0000112C                                   223  
+0000112C                                   224  
+0000112C                                   225  IN_RA:
+0000112C                                   226  
+0000112C  103C 0000                        227   MOVE.B #$00,D0
+00001130  1239 00EFFC07                    228   MOVE.B BUFF_A,D1
+00001136  4EB9 00005F86                    229   JSR ESCCAR
+0000113C  5204                             230   ADD.B #$01,D4
+0000113E                                   231  
+0000113E  6000 FFD8                        232   BRA.L RTI_4
+00001142                                   233  
+00001142                                   234  
+00001142                                   235  IN_RB:
+00001142                                   236  
+00001142  103C 0001                        237   MOVE.B #$01,D0
+00001146  1239 00EFFC17                    238   MOVE.B BUFF_B,D1
+0000114C  4EB9 00005F86                    239   JSR ESCCAR
+00001152  5205                             240   ADD.B #$01,D5
+00001154                                   241  
+00001154  6000 0056                        242   BRA.L FIN_RTI
+00001158                                   243  
+00001158                                   244  IN_TA:
+00001158                                   245  
+00001158  103C 0002                        246   MOVE.B #$02,D0
+0000115C  4EB9 00006008                    247   JSR LEECAR
+00001162  B0BC FFFFFFFF                    248   CMP.L #$FFFFFFFF,D0
+00001168  6600 000C                        249   BNE HIT_IN_TA
+0000116C  0238 00FE 0500                   250   AND.B #$FE,IMR_2
+00001172  6000 0038                        251   BRA.L FIN_RTI
+00001176                                   252  
+00001176                                   253  
+00001176                                   254   HIT_IN_TA:
+00001176  5204                             255   ADD.B #$01,D4
+00001178  13C0 00EFFC07                    256   MOVE.B D0,BUFF_A
+0000117E                                   257  
+0000117E  6000 FF90                        258   BRA.L RTI_1
+00001182                                   259  
+00001182                                   260  
+00001182                                   261  IN_TB:
+00001182                                   262  
+00001182  303C 0003                        263   MOVE #$03,D0
+00001186  4EB9 00006008                    264   JSR LEECAR
+0000118C  B0BC FFFFFFFF                    265   CMP.L #$FFFFFFFF,D0
+00001192  6600 000C                        266   BNE HIT_TB
+00001196  0238 00EF 0500                   267   AND.B #$EF,IMR_2
+0000119C  6000 FF82                        268   BRA.L RTI_5
+000011A0                                   269  
+000011A0                                   270  
+000011A0                                   271  
+000011A0                                   272  
+000011A0                                   273  
+000011A0                                   274  
+000011A0                                   275  HIT_TB:
+000011A0  5205                             276   ADD.B #$01,D5
+000011A2                                   277  
+000011A2                                   278  
+000011A2                                   279  
+000011A2  13C0 00EFFC17                    280   MOVE.B D0,BUFF_B
+000011A8                                   281  
+000011A8  6000 0002                        282   BRA.L FIN_RTI
+000011AC                                   283  
+000011AC                                   284  
+000011AC                                   285  
+000011AC                                   286   
+000011AC                                   287  
+000011AC                                   288  
+000011AC                                   289  
+000011AC                                   290  
+000011AC                                   291  
+000011AC                                   292  
+000011AC                                   293  
+000011AC  4CDF 0040                        294   FIN_RTI: MOVEM.L (A7)+,D6
+000011B0  4CDF 0407                        295   MOVEM.L (A7)+,D0-D2/A2
+000011B4  13F8 0500 00EFFC0B               296   MOVE.B IMR_2,IMR
+000011BC  4E73                             297   RTE
+000011BE                                   298  
+000011BE                                   299    
+000011BE                                   300  
+000011BE                                   301  
+00003000                                   302   ORG $3000
+00003000                                   303  
+00003000                                   304  INIT: 
+00003000                                   305  
+00003000                                   306   * Reg MR1X 0(0)0000(11) = $03 (RxRGY & 8bits)
+00003000                                   307   * Reg MR2X (00)0000(0) = $0 (Modo normal)
+00003000                                   308   * Reg ACR (0)000000 = $0 (Conjunto 1 de velocidades) 
+00003000                                   309   * Reg CSRX (1100)(1100) = $CC ( velocidades de transmision y recepcion)
+00003000                                   310   * Reg CRX (0001)(01)(01) = $15 (Habilitar transmision y recepcion)
+00003000                                   311   * Reg IVR  $40 (Dado por el enunciado)
+00003000                                   312   * Reg IMR  00(1)(0)00(1)(0) = $22 (habilitar E/S)
+00003000                                   313  
+00003000  6100 3084                        314   BSR.L INI_BUFS
+00003004                                   315  
+00003004  13FC 0010 00EFFC05               316   MOVE.B #$10,CRA
+0000300C  13FC 0010 00EFFC15               317   MOVE.B #$10,CRB *Activamos MR1 pero no ponemos las interrupciones aun
+00003014                                   318  
+00003014  13FC 0003 00EFFC01               319   MOVE.B #$03,MR1A
+0000301C  13FC 0003 00EFFC11               320   MOVE.B #$03,MR1B
+00003024  13FC 0000 00EFFC01               321   MOVE.B #$00,MR2A
+0000302C  13FC 0000 00EFFC11               322   MOVE.B #$00,MR2B
+00003034                                   323  
+00003034                                   324  
+00003034  13FC 00CC 00EFFC03               325   MOVE.B #$CC,CSRA
+0000303C  13FC 00CC 00EFFC13               326   MOVE.B #$CC,CSRB
+00003044                                   327  
+00003044                                   328  
+00003044  13FC 0040 00EFFC19               329   MOVE.B #$40,IVR
+0000304C  13FC 0033 00EFFC0B               330   MOVE.B #$33,IMR
+00003054  11FC 0033 0500                   331   MOVE.B #$33,IMR_2
+0000305A  13FC 0000 00EFFC09               332   MOVE.B #$00,ACR
+00003062                                   333  
+00003062  21FC 000010EC 0100               334   MOVE.L #RTI,$100
+0000306A                                   335  
+0000306A  13FC 0015 00EFFC05               336   MOVE.B #$15,CRA
+00003072  13FC 0015 00EFFC15               337   MOVE.B #$15,CRB *Activamos MR1  y las interrupciones
+0000307A                                   338  
+0000307A                                   339  
+0000307A  4E75                             340   RTS
+0000307C                                   341  
+0000307C                                   342  
+00004000                                   343   ORG $4000
+00004000                                   344  
+00004000  4EB8 3000                        345   JSR INIT
+00004004  46FC 2000                        346   MOVE.W #$2000,SR
+00004008  B180                             347   EOR.L D0,D0
+0000400A  B381                             348   EOR.L D1,D1
+0000400C  0601 0034                        349   ADD.B #$34,D1
+00004010  B180                             350   EOR.L D0,D0
+00004012  0600 0000                        351   BUC:ADD.B #$0,D0
+00004016  0642 0010                        352   ADD.W #$10,D2
+0000401A  60F6                             353   BRA BUC
+0000401C                                   354  
+0000401C                                   355  
+0000401C                                   356  * V1.0 Feb. 2022
+0000401C                                   357  * V1.1 24/02/2022. Alineamiento esccar
+0000401C                                   358  * V1.2 14/03/2022. Devolución valor correcto de D0 en ESCCAR
+0000401C                                   359  * V1.3 03/05/2022. Se ponen a 0 los 30 bits más sign de D0 en LEECAR y ESCCAR
+0000401C                                   360  * V1.4 09/11/2023. Renombrado de etiquetas. Comienzan por .
+0000401C                                   361  
+0000401C                                   362  
+0000401C                                   363  
+0000401C  =00000000                        364  .SCAN_A	EQU	0
+0000401C  =00000001                        365  .SCAN_B	EQU	1
+0000401C  =00000002                        366  .PRNT_A	EQU	2
+0000401C  =00000003                        367  .PRNT_B	EQU	3
+0000401C                                   368  
+0000401C  =000007D1                        369  .TAMBUF	EQU	2001
+0000401C                                   370  
+0000401C                                   371  * Buffer de Scan A
+0000401C  00004024                         372  .BSCAN_A		DC.L	.BSC_A	* Puntero de extracción 
+00004020  00004024                         373  		DC.L	.BSC_A	* Puntero de inserción
+00004024                                   374  .BSC_A		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
+000047F5                                   375  
+000047F5                                   376  * Buffer de Scan B
+000047F6  000047FE                         377  .BSCAN_B		DC.L	.BSC_B	* Puntero de extracción 
+000047FA  000047FE                         378  		DC.L	.BSC_B	* Puntero de inserción
+000047FE                                   379  .BSC_B		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
+00004FCF                                   380  
+00004FCF                                   381  * Buffer de Print A
+00004FD0  00004FD8                         382  .BPRNT_A		DC.L	.BPR_A	* Puntero de extracción 
+00004FD4  00004FD8                         383  		DC.L	.BPR_A	* Puntero de inserción
+00004FD8                                   384  .BPR_A		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
+000057A9                                   385  
+000057A9                                   386  * Buffer de Print B
+000057AA  000057B2                         387  .BPRNT_B		DC.L	.BPR_B	* Puntero de extracción 
+000057AE  000057B2                         388  		DC.L	.BPR_B	* Puntero de inserción
+000057B2                                   389  .BPR_B		DS.B	.TAMBUF	* BUFFER DE 2001 BYTES
+00005F83                                   390  
+00005F84  0001                             391  		DC.W 1
+00005F86                                   392  
+00005F86                                   393  
+00005F86                                   394  *************************** ESCCAR *********************************************************
+00005F86                                   395  
+00005F86                                   396  ESCCAR:
+00005F86  48E7 20F8                        397          MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
+00005F8A                                   398  
+00005F8A  C0BC 00000003                    399  	AND.L   #3,D0
+00005F90  B0BC 00000000                    400  	CMP.L	#.SCAN_A,D0
+00005F96  6600 000C                        401  	BNE	.ESCB
+00005F9A  207C 0000401C                    402  	MOVE.L	#.BSCAN_A,A0
+00005FA0  6000 0030                        403  	BRA	.CONTESC
+00005FA4  B0BC 00000001                    404  .ESCB:   CMP.L   #.SCAN_B,D0
+00005FAA  6600 000C                        405          BNE     .EPRA
+00005FAE  207C 000047F6                    406          MOVE.L  #.BSCAN_B,A0
+00005FB4  6000 001C                        407          BRA     .CONTESC
+00005FB8  B0BC 00000002                    408  .EPRA:   CMP.L   #.PRNT_A,D0
+00005FBE  6600 000C                        409          BNE     .EPRB
+00005FC2  207C 00004FD0                    410          MOVE.L  #.BPRNT_A,A0
+00005FC8  6000 0008                        411          BRA     .CONTESC
+00005FCC  207C 000057AA                    412  .EPRB: 	MOVE.L  #.BPRNT_B,A0
+00005FD2                                   413  
+00005FD2  B180                             414  .CONTESC: EOR.L D0,D0		* A0 contiene la dirección del puntero de extracción
+00005FD4  2250                             415  	MOVE.L	(A0),A1		* A1 contiene el puntero de extracción
+00005FD6  2468 0004                        416  	MOVE.L	4(A0),A2	* A2 contiene el puntero de inserción 
+00005FDA  2648                             417  	MOVE.L	A0,A3
+00005FDC  508B                             418  	ADD.L	#8,A3		* A3 contiene el comienzo del buffer 
+00005FDE  240B                             419  	MOVE.L	A3,D2
+00005FE0  0682 000007D1                    420  	ADD.L	#.TAMBUF,D2
+00005FE6  2842                             421  	MOVE.L	D2,A4		* A4 contiene el final del buffer (1 más allá)
+00005FE8                                   422  
+00005FE8  14C1                             423  	MOVE.B	D1,(A2)+		* Inserta el caracter
+00005FEA  B9CA                             424  	CMP.L	A2,A4		* Si son iguales  ha llegado al final del buffer
+00005FEC  6600 0004                        425  	BNE	.ACPUNE
+00005FF0  244B                             426  	MOVE.L	A3,A2		* Se pone el puntero de inserción al comienzo del buffer
+00005FF2  B5C9                             427  .ACPUNE: CMP.L	A1,A2		* Si son iguales se ha llenado el buffer
+00005FF4  6700 000A                        428  	BEQ	.LLENO
+00005FF8  214A 0004                        429  	MOVE.L	A2,4(A0)	* Actualiza el puntero de inserción
+00005FFC  6000 0004                        430  	BRA	.FINEB
+00006000  70FF                             431  .LLENO:	MOVE.L	#-1,D0		* Se devuelve un -1 en D0 
+00006002  4CDF 1F04                        432  .FINEB:	MOVEM.L       (A7)+,A0-A4/D2 *Restauramos los registros
+00006006  4E75                             433  	RTS
+00006008                                   434  
+00006008                                   435  *************************** FIN ESCCAR *****************************************************
+00006008                                   436  
+00006008                                   437  *************************** LEECAR *********************************************************
+00006008                                   438  
+00006008                                   439  LEECAR:
+00006008  48E7 20F8                        440          MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
+0000600C                                   441  
+0000600C  C0BC 00000003                    442  	AND.L   #3,D0
+00006012  B0BC 00000000                    443  	CMP.L	#.SCAN_A,D0
+00006018  6600 000C                        444  	BNE	.LSCB
+0000601C  207C 0000401C                    445  	MOVE.L	#.BSCAN_A,A0
+00006022  6000 0030                        446  	BRA	.CONTLEE
+00006026  B0BC 00000001                    447  .LSCB:   CMP.L   #.SCAN_B,D0
+0000602C  6600 000C                        448          BNE     .LPRA
+00006030  207C 000047F6                    449          MOVE.L  #.BSCAN_B,A0
+00006036  6000 001C                        450          BRA     .CONTLEE
+0000603A  B0BC 00000002                    451  .LPRA:   CMP.L   #.PRNT_A,D0
+00006040  6600 000C                        452          BNE     .LPRB
+00006044  207C 00004FD0                    453          MOVE.L  #.BPRNT_A,A0
+0000604A  6000 0008                        454          BRA     .CONTLEE
+0000604E  207C 000057AA                    455  .LPRB: 	MOVE.L  #.BPRNT_B,A0
+00006054                                   456  
+00006054                                   457  .CONTLEE:				* A0 contiene la dirección del puntero de extracción
+00006054  2250                             458  	MOVE.L	(A0),A1		* A1 contiene el puntero de extracción
+00006056  2468 0004                        459  	MOVE.L	4(A0),A2	* A2 contiene el puntero de inserción 
+0000605A  2648                             460  	MOVE.L	A0,A3
+0000605C  508B                             461  	ADD.L	#8,A3		* A3 contiene el comienzo del buffer 
+0000605E  240B                             462          MOVE.L  A3,D2
+00006060  0682 000007D1                    463          ADD.L   #.TAMBUF,D2
+00006066  2842                             464          MOVE.L  D2,A4           * A4 contiene el final del buffer (1 más allá)
+00006068                                   465  
+00006068  B5C9                             466  	CMP.L	A1,A2		* Si son iguales, el buffer está vacío
+0000606A  6600 0008                        467  	BNE	.NOVAC
+0000606E  70FF                             468  	MOVE.L	#-1,D0
+00006070  6000 000E                        469  	BRA	.SALLB
+00006074                                   470  
+00006074  1019                             471  .NOVAC:	MOVE.B	(A1)+,D0		* Extrae el caracter
+00006076  B9C9                             472  	CMP.L	A1,A4		* Si son iguales  ha llegado al final del buffer
+00006078  6600 0004                        473  	BNE	.ACPUNL
+0000607C  224B                             474  	MOVE.L	A3,A1		* Se pone el puntero de extracción al comienzo del buffer
+0000607E  2089                             475  .ACPUNL:	MOVE.L	A1,(A0)		* Actualiza el puntero de extracción
+00006080                                   476  
+00006080  4CDF 1F04                        477  .SALLB:	MOVEM.L (A7)+,A0-A4/D2 *Restauramos los registros
+00006084  4E75                             478  	RTS
+00006086                                   479  
+00006086                                   480  *************************** FIN LEECAR *****************************************************
+00006086                                   481  
+00006086                                   482  *************************** INI_BUFS *********************************************************
+00006086                                   483  
+00006086                                   484  INI_BUFS:
+00006086  21FC 00004024 401C               485  	MOVE.L	#.BSC_A,.BSCAN_A		* Inicia el puntero de extracción
+0000608E  21FC 00004024 4020               486  	MOVE.L	#.BSC_A,.BSCAN_A+4	* Inicia el puntero de inserción
+00006096  21FC 000047FE 47F6               487  	MOVE.L	#.BSC_B,.BSCAN_B		* Inicia el puntero de extracción
+0000609E  21FC 000047FE 47FA               488  	MOVE.L	#.BSC_B,.BSCAN_B+4	* Inicia el puntero de inserción
+000060A6  21FC 00004FD8 4FD0               489  	MOVE.L	#.BPR_A,.BPRNT_A		* Inicia el puntero de extracción
+000060AE  21FC 00004FD8 4FD4               490  	MOVE.L	#.BPR_A,.BPRNT_A+4	* Inicia el puntero de inserción
+000060B6  21FC 000057B2 57AA               491  	MOVE.L	#.BPR_B,.BPRNT_B		* Inicia el puntero de extracción
+000060BE  21FC 000057B2 57AE               492  	MOVE.L	#.BPR_B,.BPRNT_B+4	* Inicia el puntero de inserción
+000060C6                                   493  	
+000060C6  4E75                             494          RTS
+000060C8                                   495  
+000060C8                                   496  *************************** FIN INI_BUFS *****************************************************
+000060C8                                   497  
+000060C8                                   498  
 
 No errors detected
 No warnings generated

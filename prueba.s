@@ -30,6 +30,177 @@
  IMR_2: DC.B 0
 
  ORG $1000
+
+
+* SCAN - Lectura de dispositivo
+* Parámetros en pila (desde 8(A6) hacia arriba):
+*   4(A6)  = Buffer destino (dirección, 4 bytes)
+*   8(A6) = Descriptor línea (2 bytes): 0 = A, 1 = B
+*   10(A6) = Tamaño máximo a leer (2 bytes)
+* Retorno: D0 = número de caracteres leídos, o -1 si error
+
+
+SCAN:
+        LINK    A6,#0              * Crear marco de pila
+        MOVEM.L D1-D3/A0,-(A7)    * Salvar registros
+
+        * Cargar parámetros
+        EOR.L D0,D0
+        * 0(A6) es la dir retorno
+        MOVE.L  4(A6),A0          * A0 = buffer destino
+        MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+        MOVE.W  10(A6),D2          * D2 = tamaño máximo
+
+        * Validar descriptor (solo 0 o 1 son válidos)
+          CMP.W   #1,D0
+        BHI     SCAN_ERROR
+        * Validar tamaño (si es 0, no hay nada que leer)
+        CMP.W   #0,D2
+        BEQ     SCAN_CERO
+        * Inicializar contador de caracteres leídos
+        CLR.L   D3
+
+SCAN_LOOP:
+        * ¿Ya leímos el máximo?
+        CMP.W   D3,D2
+        BEQ     SCAN_FIN
+        EOR.L D0,D0
+        MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+
+        BSR     LEECAR
+        * Si LEECAR devuelve -1, buffer vacío → terminar
+        CMP.L   #$FFFFFFFF,D0
+        BEQ     SCAN_FIN
+
+        * Copiar carácter al buffer destino y avanzar puntero
+        MOVE.B  D0,(A0)+
+        ADDQ.W  #1,D3
+        BRA     SCAN_LOOP
+
+SCAN_CERO:
+        * Tamaño = 0: devolver 0 caracteres leídos
+        CLR.L   D0
+        BRA     SCAN_RET
+
+SCAN_FIN:
+        * Devolver número de caracteres leídos
+        MOVE.L  D3,D0
+        BRA     SCAN_RET
+
+SCAN_ERROR:
+        * Parámetro inválido: devolver -1
+        MOVE.L  #$FFFFFFFF,D0
+
+SCAN_RET:
+        MOVEM.L (A7)+,D1-D3/A0    * Restaurar registros
+        UNLK    A6                  * Destruir marco de pila
+        RTS
+
+
+* Print - Escritura en dispositivo
+* Parámetros en pila (desde 8(A6) hacia arriba):
+*   4(A6)  = Buffer fuente (dirección, 4 bytes)
+*   8(A6) = Descriptor línea (2 bytes): 0 = A, 1 = B
+*   10(A6) = Tamaño a escribir (2 bytes)
+* Retorno: D0 = número de caracteres aceptados, o -1 si error
+
+
+PRINT:
+        LINK    A6,#0              * Crear marco de pila
+        MOVEM.L D1-D5/A0-A1,-(A7) * Salvar registros
+
+        * Cargar parámetros
+        EOR.L D0,D0
+        MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+        MOVE.W  10(A6),D2          * D2 = tamaño
+        MOVE.L  4(A6),A0          * A0 = buffer fuente
+
+        * Validar descriptor (solo 0 o 1 son válidos)
+        CMP.W   #1,D0
+        BHI     PRINT_ERROR
+
+        * Validar tamaño (si es 0, no hay nada que escribir)
+        CMP.W   #0,D2
+        BEQ     PRINT_CERO
+
+        * Inicializar contador
+        CLR.L   D3
+        MOVE.L  A0,A1              * A1 = puntero fuente (avanza)
+
+PRINT_LOOP:
+        * ¿Ya escribimos todo?
+        CMP.W   D3,D2
+        BEQ     PRINT_FIN
+
+    
+        * Obtener carácter del buffer fuente
+        MOVE.B  (A1)+,D1
+
+        * Calcular descriptor para ESCCAR (transmisión)
+        * Descriptor original 0 → 2 (PRNT_A)
+        * Descriptor original 1 → 3 (PRNT_B)
+        EOR.L D0,D0
+        MOVE.W  8(A6),D0          * D0 = descriptor (0=A, 1=B)
+        ADDQ.W  #2,D0
+
+        * Insertar carácter en buffer interno
+        BSR     ESCCAR
+
+       
+        * Si ESCCAR devuelve -1, buffer lleno → terminar
+        CMP.L   #$FFFFFFFF,D0
+        BEQ     PRINT_FIN
+
+        * Incrementar contador
+        ADDQ.W  #1,D3
+        BRA     PRINT_LOOP
+
+PRINT_FIN:
+        * ¿Se insertó algún carácter?
+        TST.L   D3
+        BEQ     PRINT_RET_OK
+
+  
+
+        * Activar TxRDY según la línea
+        EOR.L D0,D0
+        MOVE.W  8(A6),D0
+        CMP.W   #0,D0
+        BEQ     PRINT_ACT_A
+        * Línea B: activar bit 5 (TXR_B)
+        OR.B   #$10,IMR_2
+        BRA     PRNT_ACT_K
+PRINT_ACT_A:
+        * Línea A: activar bit 1 (TXR_A)
+        
+        OR.B   #$01,IMR_2
+
+PRNT_ACT_K:
+        * Actualizar IMR y su copia
+       
+        MOVE.B IMR_2,IMR
+
+
+PRINT_RET_OK:
+        MOVE.L  D3,D0              * Devolver caracteres aceptados
+        BRA     PRINT_DEVUELVE
+
+PRINT_CERO:
+        CLR.L   D0                  * Devolver 0
+        BRA     PRINT_DEVUELVE
+
+PRINT_ERROR:
+        MOVE.L  #$FFFFFFFF,D0      * Devolver -1 (error)
+
+PRINT_DEVUELVE:
+        MOVEM.L (A7)+,D1-D5/A0-A1
+        UNLK    A6
+        RTS
+
+
+
+
+
  RTI:
  MOVE.B #$00,IMR
  MOVEM.L D0-D2/A2,-(A7)
